@@ -1,0 +1,202 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>MARS ROVERS</title>
+<link href="cssfile.css" rel="stylesheet" type="text/css" />
+</head>
+<body class="customh1">
+<p id="titulo">Terminal  de Control de Mars Rover</p>
+<p class="customh2">Presione Enter después de cada comando y presione &quot;Esc&quot; para reiniciar la Consola.</p>
+<hr />
+<p>
+<textarea name="roverTerminal" class="customTerminal" id="roverTerminal" title="Mars Rover Terminal" onkeypress="return terminalRover(event)"></textarea>
+</p> 
+<script language="JavaScript">
+var terminalContent = ""; //variable que recopilará el total de la terminal
+var xtraChars = 0; //variable temporal, numero de caracteres que sobran al comando actual
+var newCharLength = 0; // variable temporal, numero de caracteres del comando
+var actualCommand = ""; // aquí se almacena la más reciente línea de comando
+var terminalResponse = "";
+var xtremeX = 1; // aqui se almacena el valor X de la esquina superior derecha de la plataforma
+var xtremeY = 1; // aqui se almacena el valor Y de la esquina superior derecha de la plataforma
+var roversX = []; // aqui se almacena las posiciones X de los rovers
+var roversY = []; // aqui se almacena las posiciones Y de los rovers
+var roversO = []; // aqui se almacena la orientación de los rovers
+var tempORover = "N"; //variable temporal de orientación del último rover colocado
+var tempXRover = 0; //variable temporal de X del último rover colocado
+var tempYRover = 0; //variable temporal de Y del último rover colocado
+var tempMovCommand = ""; // Variable temporal de Comando de Movimiento
+var tempRoverAction = ""; // Variable temporal que controla la acción inmediata del Rover
+
+
+    function terminalRover(event){
+        var kCode = event.which||event.keyCode;
+		switch(kCode){
+			case 13: //acá se va a procesar la línea de comando
+           		xtraChars = terminalContent.length;
+				terminalContent = document.getElementById("roverTerminal").value;
+				newCharLength = terminalContent.length;
+				actualCommand = terminalContent.substr(xtraChars);
+				terminalResponse = processCommand(actualCommand);
+				document.getElementById("roverTerminal").value += String.fromCharCode(13, 10) + terminalResponse;
+				terminalContent = document.getElementById("roverTerminal").value;
+				xtraChars = terminalContent.length;
+				return true;
+				break;
+			case 27: //acá insertare lo que hace al poner esc
+				alert("Se reinicia completamente la terminal"); //añadir código que reinicie todas las variables
+				var xtremeX = 1; // aqui se almacena el valor X de la esquina superior derecha de la plataforma
+				var xtremeY = 1; // aqui se almacena el valor Y de la esquina superior derecha de la plataforma
+				var roversX = []; // aqui se almacena las posiciones X de los rovers
+				var roversY = []; // aqui se almacena las posiciones Y de los rovers
+				var roversO = []; // aqui se almacena la orientación de los rovers
+				var tempORover = "N"; //variable temporal de orientación del último rover colocado
+				var tempXRover = 0; //variable temporal de X del último rover colocado
+				var tempYRover = 0; //variable temporal de Y del último rover colocado
+				document.getElementById("roverTerminal").value = "";
+				return true;
+				break;
+			default: //acá discriminamos el texto para adminitir sólo los caracteres permitidos
+				if (kCode === 32 || (kCode >=48 && kCode <= 57 ) || (kCode >=76 && kCode <= 78 ) || kCode === 82 || kCode === 83 || kCode === 69 || kCode === 87 ){
+            		return true;
+				}
+				else if((kCode >=108 && kCode <= 110 ) || kCode === 114 || kCode === 115 || kCode === 101 || kCode === 119 ){
+		        	return true;
+				}
+				else{
+					return false;
+				}
+        }
+
+    }
+	function processCommand(terminalInput){
+		var differentiator = terminalInput.split(" ");
+		switch (differentiator.length){
+			case 1: //es un comando de movimiento
+				tempMovCommand = differentiator.pop();
+				tempMovCommand = tempMovCommand.toUpperCase();
+				for(var i=0; i<= tempMovCommand.length;i++){ //Va a revisar cada caracter del comando uno a uno
+					tempRoverAction = tempMovCommand.substr(i,1);
+					switch (tempRoverAction){
+						case "L":
+							var oldO = roversO[roversO.length - 1];
+							switch (oldO){
+								case "N":
+									roversO.pop();
+									roversO.push("W");
+									break;
+								case "S":
+									roversO.pop();
+									roversO.push("E");
+									break;
+								case "E":
+									roversO.pop();
+									roversO.push("N");
+									break;
+								case "W":
+									roversO.pop();
+									roversO.push("S");
+									break;
+							}
+							break;
+						case "R":
+							var oldO = roversO[roversO.length - 1];
+							switch (oldO){
+								case "N":
+									roversO.pop();
+									roversO.push("E");
+									break;
+								case "S":
+									roversO.pop();
+									roversO.push("W");
+									break;
+								case "E":
+									roversO.pop();
+									roversO.push("S");
+									break;
+								case "W":
+									roversO.pop();
+									roversO.push("N");
+									break;
+							}
+							break;
+						case "M":
+							var oldO = roversO[roversO.length - 1];
+							switch (oldO){
+								case "N":
+									var xtra = roversY.pop();
+									if(xtra+1 > xtremeY){
+										alert("El Rover no puede salir de la plataforma!")
+										roversY.push(xtra);
+										break;
+										}
+									roversY.push(xtra+1);
+									break;
+								case "S":
+									var xtra = roversY.pop();
+									if(xtra-1 < 0){
+										alert("El Rover no puede salir de la plataforma!")
+										roversY.push(xtra);
+										break;
+										}
+									roversY.push(xtra-1);
+									break;
+								case "E":
+									var xtra = roversX.pop();
+									if(xtra+1 > xtremeX){
+										alert("El Rover no puede salir de la plataforma!")
+										roversX.push(xtra);
+										break;
+										}
+									roversX.push(xtra+1);
+									break;
+								case "W":
+									var xtra = roversX.pop();
+									if(xtra-1 < 0){
+										alert("El Rover no puede salir de la plataforma!")
+										roversX.push(xtra);
+										break;
+										}
+									roversX.push(xtra-1);
+									break;
+							}
+							break;
+						}
+					}
+					return "El Rover se desplazó exitosamente en las coordenadas " + roversX[roversX.length - 1] + " " + roversY[roversY.length - 1] + " " + roversO[roversO.length - 1];//devuelve posición final del Rover
+				break;
+			case 2: //es un comando de tamaño de plataforma
+				xtremeY = Number(differentiator.pop());
+				xtremeX = Number(differentiator.pop());
+				if(xtremeY <= 0 || xtremeX <=0 || isNaN(xtremeY) || isNaN(xtremeX)){ //verifica la validez de los argumentos
+					alert("Comando Inválido. Se asignan los valores X=1 y Y=1");
+					xtremeY = 1;
+					xtremeX = 1;
+					} 
+				return "La plataforma tiene " + xtremeX + " por " + xtremeY + " cuadros.";
+				break;
+			case 3: //es un comando de posicionamiento de rover
+				tempORover = differentiator.pop();
+				tempORover = tempORover.toUpperCase();
+				tempYRover = Number(differentiator.pop());
+				tempXRover = Number(differentiator.pop());
+				if(tempYRover < 0 || tempYRover > xtremeY || tempXRover < 0 || tempXRover > xtremeX || isNaN(tempYRover) || isNaN(tempXRover) || tempORover === "M" || tempORover === "L" || tempORover ==="R"){ //verifica la validez de los argumentos
+					alert("Comando Inválido. Se asignan posición X=0, Y=0, Orientación Norte");
+					tempORover = "N";
+					tempYRover = 0;
+					tempXRover = 0;
+					} 
+				roversO.push(tempORover);
+				roversY.push(tempYRover);
+				roversX.push(tempXRover);
+				return "El Rover aterrizó exitosamente en las coordenadas " + tempXRover + " " + tempYRover + " " + tempORover;
+				break;
+			default: //mensaje de error
+				return "Error de comando";
+		}
+	}
+</script>
+
+</body>
+</html>
